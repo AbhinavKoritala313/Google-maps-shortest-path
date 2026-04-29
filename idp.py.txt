@@ -1,0 +1,206 @@
+#importing packages
+
+import folium
+from geopy.geocoders import ArcGIS 
+
+arc=ArcGIS()
+
+"""
+    n=int(input())
+    for i in range(0,n):
+        enter=input()
+        locs[i]=arc.geocode(enter)
+"""
+#list that contains locations
+
+locs = [[16.507148, 80.614985],[16.509420, 80.619170],[16.508970, 80.621267], [16.510609, 80.622425],[16.512617, 80.622870]
+, [16.511837, 80.626703], [16.512909, 80.622894], [16.508046, 80.625953], [16.513736, 80.627178]]
+
+#importing math library
+import math
+
+#function to compute the distance between every adcajecnt 2 nodes
+
+def distance(origin, destination):
+    lat1, lon1 = origin
+    lat2, lon2 = destination
+    radius = 6371 #km
+
+    dlat = math.radians(lat2-lat1)
+    dlon = math.radians(lon2-lon1)
+    a = math.sin(dlat/2) * math.sin(dlat/2) + math.cos(math.radians(lat1)) \
+        * math.cos(math.radians(lat2)) * math.sin(dlon/2) * math.sin(dlon/2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+    #distance between first one and second one!
+    dbsd = radius * c
+    return dbsd
+
+#printing the distances between every coonected nodes
+print(int(distance(locs[0],locs[1])*1000))
+print(int(distance(locs[1],locs[2])*1000))
+print(int(distance(locs[2],locs[3])*1000))
+print(int(distance(locs[3],locs[7])*1000))
+print(int(distance(locs[3],locs[5])*1000))
+print(int(distance(locs[5],locs[4])*1000))
+print(int(distance(locs[5],locs[6])*1000))
+print(int(distance(locs[4],locs[8])*1000))
+print(int(distance(locs[4],locs[7])*1000))
+print(int(distance(locs[6],locs[8])*1000))
+
+
+from collections import defaultdict
+class Graph:
+    def __init__(self):
+        self.nodes = set()
+        self.edges = defaultdict(list)
+        self.distances = {}
+
+    def add_node(self, value):
+        self.nodes.add(value)
+
+    def add_edge(self, from_node, to_node, distance):
+        self.edges[from_node].append(to_node)
+        self.edges[to_node].append(from_node)
+        self.distances[(from_node, to_node)] = distance
+        self.distances[(to_node, from_node)] = distance
+
+
+
+def dijkstra(graph, initial,n):
+    visited = {initial: 0}
+
+    nodes = set(graph.nodes)
+    li=[]
+
+    while nodes:
+        min_node = None
+        for node in nodes:
+            if node in visited:
+                if min_node is None:
+                    min_node = node
+                elif visited[node] < visited[min_node]:
+                    min_node = node
+
+        if min_node is None:
+            break
+        nodes.remove(min_node)
+        current_weight = visited[min_node]
+
+        for edge in graph.edges[min_node]:
+            weight = current_weight + graph.distances[(min_node, edge)]
+            if edge not in visited or weight < visited[edge]:
+                visited[edge] = weight
+                li.append(min_node)
+    
+    root=[]
+    for i in li:
+        if i not in root:
+            root.append(i)
+
+    return visited[n], root
+
+
+p=Graph()
+for i in range(0,9):
+    p.add_node(i)
+
+    
+    
+    """
+    adding the edged to the graph
+    for k in range(0,noed):
+        s=int(input())
+        d=int(input())
+        l=int(input())
+        p.add_edge(s,d,l)
+    """
+
+p.add_edge(0,1,512)
+p.add_edge(1,2,229)
+p.add_edge(2,3,220)
+p.add_edge(3,7,471)
+p.add_edge(3,4,228)
+p.add_edge(4,5,417)
+p.add_edge(4,6,32)
+p.add_edge(5,8,217)
+p.add_edge(5,7,429)
+p.add_edge(6,8,465)
+
+"""
+    entering the sorce and destination
+    source=int(input())
+    des=int(input())
+    dijkstra(p, source, des)
+"""
+
+dijkstra(p,0,8)
+
+#creating a map obejct
+
+map=folium.Map(location=[16.507148, 80.614985], zoom_start=17, tiles="cartodb dark_matter")
+
+"""
+    Adding the names to the markers their by creating them
+    for i in range(0,n):
+        string = input()
+        folium.Marker(location=locs[i], popup=string).add_to(map)
+    
+"""
+
+
+#addings all the loactions as markers in the folium maps
+
+folium.Marker(location=locs[0], popup=0).add_to(map)
+folium.Marker(location=locs[1],popup=1).add_to(map)
+folium.Marker(location=locs[2],popup=2).add_to(map)
+folium.Marker(location=locs[3],popup=3).add_to(map)
+folium.Marker(location=locs[4],popup=4).add_to(map)
+folium.Marker(location=locs[5],popup=5).add_to(map)
+folium.Marker(location=locs[6],popup=6).add_to(map)
+folium.Marker(location=locs[7],popup=7).add_to(map)
+folium.Marker(location=locs[8],popup=8).add_to(map)
+
+
+"""
+    marking the edges using PolyLine function
+    noed = int(input())
+    for k in range(0,noed):
+        l=int(input())
+        lo=int(input())
+        folium.vector_layers.PolyLine([locs[l],locs[lo]],color='grey').add_to(map)
+"""
+
+#initially sketching the connecting nodes with grey
+
+folium.vector_layers.PolyLine([locs[0],locs[1]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[1],locs[2]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[2],locs[3]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[3],locs[7]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[3],locs[4]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[5],locs[7]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[4],locs[6]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[6],locs[8]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[4],locs[5]],color='grey').add_to(map)
+folium.vector_layers.PolyLine([locs[5],locs[8]],color='grey').add_to(map)
+
+
+#sketching our shortest path
+
+s, li=dijkstra(p,0,8)
+
+x=0
+dictl={}
+
+for i in locs:
+    dictl[x]=i
+    x+=1
+
+
+for i in range(0,len(li)):
+    if i==(len(li)-1):
+        folium.vector_layers.PolyLine([dictl[li[i]],locs[len(locs)-1]],color='blue').add_to(map)
+    else:
+        folium.vector_layers.PolyLine([dictl[li[i]],dictl[li[i+1]]],color='blue').add_to(map)
+
+
+map.save("testingidp.html")
